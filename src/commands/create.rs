@@ -19,6 +19,7 @@ pub async fn execute(name: String, init: bool) -> Result<()> {
         }
 
         let default_config = Config::default_opencode_config_dir()?;
+        let default_data = Config::default_opencode_data_dir().ok();
         
         // Create profile directories
         profile.create()?;
@@ -26,6 +27,14 @@ pub async fn execute(name: String, init: bool) -> Result<()> {
         // Copy existing config
         copy_dir_all(&default_config, &profile.config_dir)
             .with_context(|| format!("Failed to copy existing OpenCode configuration from {:?}", default_config))?;
+
+        // Copy existing data (auth, etc.) if it exists
+        if let Some(ref data_dir) = default_data {
+            if data_dir.exists() {
+                copy_dir_all(data_dir, &profile.data_dir)
+                    .with_context(|| format!("Failed to copy existing OpenCode data from {:?}", data_dir))?;
+            }
+        }
 
         success(&format!("Created profile '{}' from existing OpenCode configuration", name));
     } else {

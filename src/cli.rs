@@ -3,7 +3,7 @@ use clap::{Parser, Subcommand};
 #[derive(Parser)]
 #[command(name = "opencode-multi")]
 #[command(about = "Multi-profile manager for OpenCode")]
-#[command(version = "0.2.0")]
+#[command(version = "0.2.1")]
 pub struct Cli {
     #[command(subcommand)]
     pub command: Commands,
