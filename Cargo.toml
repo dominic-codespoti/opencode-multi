@@ -1,0 +1,30 @@
+[package]
+name = "opencode-multi"
+version = "0.1.0"
+edition = "2021"
+description = "Multi-profile manager for OpenCode"
+license = "MIT"
+repository = "https://github.com/dominic-codespoti/opencode-multi"
+keywords = ["opencode", "cli", "profile", "multi-profile", "launcher"]
+categories = ["command-line-utilities", "development-tools"]
+
+[[bin]]
+name = "opencode-multi"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+anyhow = "1"
+dirs = "5"
+colored = "2"
+tokio = { version = "1", features = ["full"] }
+walkdir = "2"
+tempfile = "3"
+which = "6"
+
+[dev-dependencies]
+assert_cmd = "2"
+predicates = "3"
+tempfile = "3"
