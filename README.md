@@ -42,6 +42,10 @@ cargo install --path .
 opencode-multi create work
 opencode-multi create personal
 
+# Or create profiles from your existing OpenCode setup
+opencode-multi create work --init
+opencode-multi create personal --init
+
 # List profiles
 opencode-multi list
 
@@ -54,20 +58,26 @@ opencode-multi run personal
 
 ## Commands
 
-### `create <name>`
+### `create <name> [--init]`
 Create a new profile with scaffolded directory structure.
 
 ```bash
+# Create a blank profile
 opencode-multi create my-profile
+
+# Create a profile initialized from existing OpenCode configuration
+opencode-multi create my-profile --init
 ```
 
-Creates:
+Without `--init`, creates:
 - `~/.config/opencode-multi/profiles/{name}/`
 - `~/.config/opencode-multi/profiles/{name}/plugins/`
 - `~/.config/opencode-multi/profiles/{name}/commands/`
 - `~/.config/opencode-multi/profiles/{name}/agents/`
 - `~/.config/opencode-multi/profiles/{name}/modes/`
 - `~/.local/share/opencode-multi/profiles/{name}/`
+
+With `--init`, copies your existing OpenCode config from `~/.config/opencode/` as the starting point.
 
 ### `list`
 Display all profiles with status information.

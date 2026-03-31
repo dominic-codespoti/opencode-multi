@@ -15,7 +15,7 @@ async fn main() -> Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Create { name } => commands::create::execute(name).await?,
+        Commands::Create { name, init } => commands::create::execute(name, init).await?,
         Commands::List => commands::list::execute().await?,
         Commands::Show { name } => commands::show::execute(name).await?,
         Commands::Run { name, opencode_args } => {

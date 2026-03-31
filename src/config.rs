@@ -45,6 +45,21 @@ impl Config {
             .join("auth.json")
     }
 
+    /// Get the default OpenCode config directory (~/.config/opencode/)
+    pub fn default_opencode_config_dir() -> Result<PathBuf> {
+        let base = dirs::config_dir()
+            .ok_or_else(|| anyhow::anyhow!("Could not determine config directory"))?;
+        let default_dir = base.join("opencode");
+        Ok(default_dir)
+    }
+
+    /// Check if default OpenCode config exists
+    pub fn default_opencode_config_exists() -> bool {
+        Self::default_opencode_config_dir()
+            .map(|dir| dir.exists())
+            .unwrap_or(false)
+    }
+
     pub fn ensure_roots_exist(&self) -> Result<()> {
         std::fs::create_dir_all(&self.config_root)
             .with_context(|| format!("Failed to create config root: {:?}", self.config_root))?;
