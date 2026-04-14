@@ -22,7 +22,8 @@ pub async fn execute() -> Result<()> {
         let profile = Profile::new(&name)?;
         let status = profile.status();
 
-        let config_exists = if profile.config_dir.exists() {
+        let config_file_exists = profile.config_dir.join("opencode.json").exists();
+        let config_exists = if config_file_exists {
             "yes".green()
         } else {
             "no".red()
@@ -42,7 +43,7 @@ pub async fn execute() -> Result<()> {
         };
 
         println!(
-            "{:<10} {:>6}   {:>4}   {}",
+            "{:<20} {:>6}   {:>4}   {}",
             name, config_exists, auth_exists, status_str
         );
     }
