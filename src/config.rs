@@ -31,25 +31,39 @@ impl Config {
     }
 
     pub fn profile_config_dir(&self, name: &str) -> PathBuf {
-        self.config_root.join(name)
+        self.config_root.join(name).join(".config").join("opencode")
     }
 
     pub fn profile_data_dir(&self, name: &str) -> PathBuf {
-        self.data_root.join(name)
+        self.data_root.join(name).join(".local").join("share").join("opencode")
     }
 
     pub fn profile_auth_path(&self, name: &str) -> PathBuf {
-        // OpenCode stores auth in data_dir/opencode/auth.json
-        self.profile_data_dir(name)
-            .join("opencode")
-            .join("auth.json")
+        self.profile_data_dir(name).join("auth.json")
     }
 
-    /// Get the default OpenCode config directory (~/.config/opencode/)
+    pub fn profile_root(&self, name: &str) -> PathBuf {
+        self.config_root.join(name)
+    }
+
+    /// Get the default OpenCode config directory
     pub fn default_opencode_config_dir() -> Result<PathBuf> {
         let base = dirs::config_dir()
             .ok_or_else(|| anyhow::anyhow!("Could not determine config directory"))?;
         let default_dir = base.join("opencode");
+
+        if default_dir.exists() {
+            return Ok(default_dir);
+        }
+
+        // Fallback to ~/.config/opencode (common on macOS for CLI tools)
+        if let Some(home) = dirs::home_dir() {
+            let xdg_config = home.join(".config").join("opencode");
+            if xdg_config.exists() {
+                return Ok(xdg_config);
+            }
+        }
+
         Ok(default_dir)
     }
 
@@ -60,19 +74,25 @@ impl Config {
             .unwrap_or(false)
     }
 
-    /// Get the default OpenCode data directory (~/.local/share/opencode/)
+    /// Get the default OpenCode data directory
     pub fn default_opencode_data_dir() -> Result<PathBuf> {
         let base = dirs::data_dir()
             .ok_or_else(|| anyhow::anyhow!("Could not determine data directory"))?;
         let default_dir = base.join("opencode");
-        Ok(default_dir)
-    }
 
-    /// Check if default OpenCode data exists
-    pub fn default_opencode_data_exists() -> bool {
-        Self::default_opencode_data_dir()
-            .map(|dir| dir.exists())
-            .unwrap_or(false)
+        if default_dir.exists() {
+            return Ok(default_dir);
+        }
+
+        // Fallback to ~/.local/share/opencode
+        if let Some(home) = dirs::home_dir() {
+            let xdg_data = home.join(".local").join("share").join("opencode");
+            if xdg_data.exists() {
+                return Ok(xdg_data);
+            }
+        }
+
+        Ok(default_dir)
     }
 
     pub fn ensure_roots_exist(&self) -> Result<()> {
@@ -108,7 +128,6 @@ impl Config {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tempfile::TempDir;
 
     #[test]
     fn test_profile_paths() {

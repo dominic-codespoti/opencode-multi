@@ -5,16 +5,11 @@ use std::process::Stdio;
 pub async fn execute(name: String, opencode_args: Vec<String>) -> Result<()> {
     let profile = load_profile(&name)?;
 
-    // Get the data parent directory (XDG_DATA_HOME)
-    // OpenCode will append /opencode/ to this path
-    let data_parent = profile
-        .data_dir
-        .parent()
-        .expect("Profile data dir should have a parent");
-
     let mut cmd = tokio::process::Command::new("opencode");
     cmd.env("OPENCODE_CONFIG_DIR", &profile.config_dir)
-        .env("XDG_DATA_HOME", data_parent)
+        .env("XDG_CONFIG_HOME", profile.config_dir.parent().unwrap().parent().unwrap())
+        .env("XDG_DATA_HOME", profile.data_dir.parent().unwrap().parent().unwrap().parent().unwrap())
+        .env("HOME", &profile.profile_root)
         .env("OPENCODE_PROFILE", &name)
         .args(&opencode_args)
         .stdin(Stdio::inherit())

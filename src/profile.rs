@@ -8,6 +8,7 @@ use std::path::PathBuf;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Profile {
     pub name: String,
+    pub profile_root: PathBuf,
     pub config_dir: PathBuf,
     pub data_dir: PathBuf,
 }
@@ -34,18 +35,20 @@ impl Profile {
         validate_profile_name(name)?;
 
         let config = Config::new()?;
+        let profile_root = config.profile_root(name);
         let config_dir = config.profile_config_dir(name);
         let data_dir = config.profile_data_dir(name);
 
         Ok(Self {
             name: name.to_string(),
+            profile_root,
             config_dir,
             data_dir,
         })
     }
 
     pub fn exists(&self) -> bool {
-        self.config_dir.exists() || self.data_dir.exists()
+        self.profile_root.exists()
     }
 
     pub fn status(&self) -> ProfileStatus {
@@ -69,7 +72,11 @@ impl Profile {
             anyhow::bail!("Profile '{}' already exists", self.name);
         }
 
-        // Create directories
+        // Create root directory
+        std::fs::create_dir_all(&self.profile_root)
+            .with_context(|| format!("Failed to create profile root directory: {:?}", self.profile_root))?;
+
+        // Create config and data directories (within the profile root)
         std::fs::create_dir_all(&self.config_dir)
             .with_context(|| format!("Failed to create config directory: {:?}", self.config_dir))?;
 
@@ -100,14 +107,18 @@ impl Profile {
             anyhow::bail!("Profile '{}' does not exist", self.name);
         }
 
-        if self.config_dir.exists() {
-            std::fs::remove_dir_all(&self.config_dir)
-                .with_context(|| format!("Failed to remove config directory"))?;
+        if self.profile_root.exists() {
+            std::fs::remove_dir_all(&self.profile_root)
+                .with_context(|| format!("Failed to remove profile directory: {:?}", self.profile_root))?;
         }
 
+        // In some systems config and data roots might be different
         if self.data_dir.exists() {
-            std::fs::remove_dir_all(&self.data_dir)
-                .with_context(|| format!("Failed to remove data directory"))?;
+            // Check if data_dir is inside profile_root to avoid double deletion
+            if !self.data_dir.starts_with(&self.profile_root) {
+                std::fs::remove_dir_all(&self.data_dir)
+                    .with_context(|| format!("Failed to remove data directory: {:?}", self.data_dir))?;
+            }
         }
 
         Ok(())
@@ -171,7 +182,6 @@ pub fn load_profile(name: &str) -> Result<Profile> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tempfile::TempDir;
 
     #[test]
     fn test_profile_creation_and_status() {
